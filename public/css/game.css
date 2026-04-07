@@ -1,0 +1,518 @@
+/* ============================================
+   PLANET POKER — GAME.CSS
+   Стили покерного стола
+============================================ */
+
+/* ---- LAYOUT ---- */
+.game-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ---- СТОЛ ---- */
+.poker-table-wrap {
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    padding-top: 8px;
+}
+
+.poker-table {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 1.6 / 1;
+    background: radial-gradient(ellipse at center, var(--green-felt) 60%, var(--green-deep) 100%);
+    border-radius: 50%;
+    border: 6px solid #4a3000;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.4), 0 0 40px rgba(0, 0, 0, 0.8), inset 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+/* ---- БАНК ---- */
+.pot-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.pot-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.pot-amount {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 20px var(--gold-glow);
+}
+
+/* ---- ОБЩИЕ КАРТЫ ---- */
+.community-cards {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+}
+
+/* ---- МЕСТА ИГРОКОВ ---- */
+.player-seat {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transform: translate(-50%, -50%);
+}
+
+/* Позиции для 6 игроков */
+.seat-0 { top: 85%; left: 50%; }  /* низ центр — наш игрок */
+.seat-1 { top: 68%; left: 88%; }  /* низ право */
+.seat-2 { top: 25%; left: 82%; }  /* верх право */
+.seat-3 { top: 10%; left: 50%; }  /* верх центр */
+.seat-4 { top: 25%; left: 18%; }  /* верх лево */
+.seat-5 { top: 68%; left: 12%; }  /* низ лево */
+
+/* Позиции для 9 игроков */
+.seat-6 { top: 50%; left: 94%; }
+.seat-7 { top: 50%; left: 6%; }
+.seat-8 { top: 85%; left: 72%; }
+
+.player-seat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface-mid);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    overflow: hidden;
+    transition: border-color var(--t-mid), box-shadow var(--t-mid);
+    position: relative;
+}
+
+.player-seat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.player-seat.active .player-seat-avatar {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px var(--gold-glow);
+    animation: pulse-gold 1.5s ease infinite;
+}
+
+.player-seat.folded .player-seat-avatar {
+    opacity: 0.4;
+    border-color: var(--border);
+}
+
+.player-seat.dealer .player-seat-avatar::after {
+    content: 'D';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    background: var(--gold);
+    color: var(--black);
+    border-radius: 50%;
+    font-size: 8px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 14px;
+    text-align: center;
+}
+
+.player-seat-name {
+    font-size: 9px;
+    color: var(--platinum);
+    font-weight: 600;
+    max-width: 48px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.player-seat-chips {
+    font-family: var(--font-display);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- КАРТЫ ИГРОКА ---- */
+.player-seat-cards {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+/* ---- ТАЙМЕР ---- */
+.player-timer {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 3px;
+    background: var(--surface-mid);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.player-timer-bar {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    transition: width 1s linear, background 0.3s ease;
+}
+
+.player-timer-bar.warning {
+    background: var(--danger);
+}
+
+/* ---- КАРТЫ ---- */
+.card {
+    width: 28px;
+    height: 40px;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.card.red {
+    color: var(--red-card);
+}
+
+.card.black {
+    color: #111;
+}
+
+.card.back {
+    background: linear-gradient(135deg, #1a3a6c, #0d2244);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: transparent;
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(212, 175, 55, 0.08) 0px,
+        rgba(212, 175, 55, 0.08) 2px,
+        transparent 2px,
+        transparent 8px
+    );
+}
+
+.card.community {
+    width: 36px;
+    height: 52px;
+    font-size: 16px;
+    border-radius: 5px;
+    animation: card-in 0.3s ease forwards;
+}
+
+.card.hidden {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    color: transparent;
+}
+
+/* ---- ПАНЕЛЬ ИГРОКА (низ) ---- */
+.player-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(8, 8, 8, 0.95);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    padding: 12px 16px;
+    z-index: 10;
+}
+
+.player-hand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.hand-cards {
+    display: flex;
+    gap: 6px;
+}
+
+.hand-card {
+    width: 44px;
+    height: 62px;
+    border-radius: 6px;
+    font-size: 20px;
+}
+
+.hand-strength {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+    text-align: center;
+    min-width: 80px;
+}
+
+/* ---- КНОПКИ ДЕЙСТВИЙ ---- */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 13px;
+    border-radius: var(--r-md);
+}
+
+.btn-fold {
+    background: var(--danger-dim);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: var(--danger);
+}
+
+.btn-check {
+    background: var(--surface-mid);
+    border: 1px solid var(--border);
+    color: var(--platinum);
+}
+
+.btn-call {
+    background: rgba(39, 174, 96, 0.15);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    color: #2ecc71;
+}
+
+.btn-raise {
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid var(--border-bright);
+    color: var(--gold);
+}
+
+.btn-allin {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(212, 175, 55, 0.1));
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: var(--danger);
+    font-weight: 900;
+}
+
+/* ---- СЛАЙДЕР РЕЙЗА ---- */
+.raise-wrap {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.raise-wrap.visible {
+    display: flex;
+}
+
+.raise-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--surface-mid);
+    outline: none;
+}
+
+.raise-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--gold-glow);
+}
+
+.raise-amount {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--gold);
+    min-width: 70px;
+    text-align: right;
+}
+
+/* ---- СТАТУС ИГРЫ ---- */
+.game-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+}
+
+.game-status-round {
+    font-size: 11px;
+    color: var(--platinum-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.game-status-players {
+    font-size: 11px;
+    color: var(--platinum-dim);
+}
+
+/* ---- ЛОГ ДЕЙСТВИЙ ---- */
+.action-log {
+    position: absolute;
+    top: 44px;
+    left: 8px;
+    right: 8px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.action-log-item {
+    font-size: 11px;
+    color: var(--platinum-dim);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: var(--r-sm);
+    padding: 3px 8px;
+    margin-bottom: 3px;
+    animation: fadeIn 0.2s ease forwards;
+    backdrop-filter: blur(4px);
+}
+
+.action-log-item.highlight {
+    color: var(--gold);
+}
+
+/* ---- РЕЗУЛЬТАТ РАУНДА ---- */
+.round-result {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.round-result-card {
+    background: rgba(8, 8, 8, 0.92);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--r-lg);
+    padding: 24px 32px;
+    text-align: center;
+    box-shadow: var(--shadow-gold);
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.round-result-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 6px;
+}
+
+.round-result-hand {
+    font-size: 13px;
+    color: var(--platinum-dim);
+    margin-bottom: 12px;
+}
+
+.round-result-amount {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+}
+
+/* ---- ИТОГИ ТУРНИРА ---- */
+.tournament-end {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 8, 8, 0.96);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    padding: 24px;
+}
+
+.tournament-end-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.tournament-end-place {
+    font-family: var(--font-display);
+    font-size: 64px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.tournament-end-prize {
+    font-size: 18px;
+    color: var(--platinum);
+    margin-bottom: 32px;
+}
+
+/* ---- WAITING OVERLAY ---- */
+.waiting-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 8, 8, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    gap: 16px;
+}
+
+.waiting-overlay-text {
+    font-size: 15px;
+    color: var(--platinum-dim);
+}
