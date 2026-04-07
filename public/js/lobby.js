@@ -63,7 +63,6 @@ const TABLES = {
 // ---- СТОЛЫ: клик ----
 function initTables() {
     document.querySelectorAll('.table-card').forEach(card => {
-        // Инициализируем dots
         const tableId = card.dataset.table;
         const cfg = TABLES[tableId];
         const bar = card.querySelector('.seats-bar');
@@ -74,7 +73,7 @@ function initTables() {
         }
 
         card.addEventListener('click', () => {
-            if (currentTable) return; // уже в очереди
+            if (currentTable) return;
             joinTable(tableId);
         });
     });
@@ -86,7 +85,8 @@ let currentTable = null;
 
 function connectSocket() {
     if (typeof io === 'undefined') {
-        console.warn('Socket.io не подключён — работаем офлайн');
+        console.warn('Socket.io не подключён');
+        window.TG?.alert('Ошибка подключения к серверу');
         return;
     }
 
@@ -100,12 +100,10 @@ function connectSocket() {
     });
 
     socket.on('lobby:update', (data) => {
-        // data = { tableId, players: [{id, name, photo}] }
         updateTableUI(data.tableId, data.players);
     });
 
     socket.on('game:start', (data) => {
-        // Игра началась — переходим на игровой стол
         window.TG?.haptic('heavy');
         setTimeout(() => {
             window.location.href = `game.html?table=${data.tableId}&token=${data.token}`;
@@ -125,15 +123,12 @@ function joinTable(tableId) {
 
     currentTable = tableId;
 
-    // Подсветить карточку
     document.querySelectorAll('.table-card').forEach(c => {
         c.classList.toggle('active', c.dataset.table === tableId);
     });
 
-    // Показать блок ожидания
     showWaiting(tableId, cfg);
 
-    // Отправить на сервер
     if (socket?.connected) {
         socket.emit('lobby:join', {
             tableId: tableId,
@@ -142,8 +137,9 @@ function joinTable(tableId) {
             photo: window.TG?.getPhoto() || null,
         });
     } else {
-        // Офлайн режим — симуляция для разработки
-        simulateWaiting(tableId, cfg);
+        window.TG?.alert('Ошибка подключения к серверу. Попробуй позже.');
+        leaveTable();
+        return;
     }
 
     window.TG?.haptic('medium');
@@ -156,7 +152,6 @@ function showWaiting(tableId, cfg) {
     document.getElementById('waitingMax').textContent = cfg.max;
     document.getElementById('waitingCount').textContent = '1';
 
-    // Призы
     const prizeRow = document.getElementById('prizeRow');
     if (cfg.prizes) {
         prizeRow.style.display = 'flex';
@@ -167,7 +162,6 @@ function showWaiting(tableId, cfg) {
         prizeRow.style.display = 'none';
     }
 
-    // Места
     renderWaitingSeats([{
         name: window.TG?.getName() || 'Игрок',
         photo: window.TG?.getPhoto(),
@@ -176,8 +170,6 @@ function showWaiting(tableId, cfg) {
 
     document.getElementById('waitingBlock').style.display = 'block';
     document.getElementById('waitingBlock').scrollIntoView({ behavior: 'smooth' });
-
-    // Кнопка "Покинуть"
     document.getElementById('btnLeave').onclick = leaveTable;
 }
 
@@ -212,7 +204,6 @@ function updateTableUI(tableId, players) {
     const cfg = TABLES[tableId];
     if (!cfg) return;
 
-    // Обновить dots на карточке стола
     const bar = document.getElementById(`seats-${tableId}`);
     if (bar) {
         bar.querySelectorAll('.seat-dot').forEach((dot, i) => {
@@ -220,11 +211,9 @@ function updateTableUI(tableId, players) {
         });
     }
 
-    // Счётчик
     const counter = document.getElementById(`count-${tableId}`);
     if (counter) counter.textContent = `${players.length}/${cfg.max}`;
 
-    // Если это наш стол — обновить блок ожидания
     if (tableId === currentTable) {
         document.getElementById('waitingCount').textContent = players.length;
         renderWaitingSeats(players.map(p => ({
@@ -246,54 +235,4 @@ function leaveTable() {
     document.getElementById('waitingBlock').style.display = 'none';
     document.getElementById('startingBanner').style.display = 'none';
     window.TG?.haptic('light');
-}
-
-// ---- СИМУЛЯЦИЯ (офлайн разработка) ----
-function simulateWaiting(tableId, cfg) {
-    let count = 1;
-    const fakePlayers = [{
-        name: window.TG?.getName() || 'Игрок',
-        photo: null,
-        initials: window.TG?.getInitials() || '?'
-    }];
-
-    const fakeNames = ['Алексей', 'Мария', 'Дмитрий', 'Анна', 'Сергей', 'Ольга', 'Иван', 'Катя'];
-
-    const interval = setInterval(() => {
-        if (count >= cfg.max || currentTable !== tableId) {
-            clearInterval(interval);
-            return;
-        }
-
-        const fakeName = fakeNames[count - 1] || `Игрок ${count}`;
-        fakePlayers.push({
-            name: fakeName,
-            photo: null,
-            initials: fakeName[0],
-        });
-
-        count++;
-        document.getElementById('waitingCount').textContent = count;
-        renderWaitingSeats(fakePlayers, cfg.max);
-
-        // Обновить dots
-        const bar = document.getElementById(`seats-${tableId}`);
-        if (bar) {
-            bar.querySelectorAll('.seat-dot').forEach((dot, i) => {
-                dot.classList.toggle('filled', i < count);
-            });
-        }
-
-        document.getElementById(`count-${tableId}`).textContent = `${count}/${cfg.max}`;
-        window.TG?.haptic('light');
-
-        // Стол заполнен
-        if (count >= cfg.max) {
-            clearInterval(interval);
-            setTimeout(() => {
-                document.getElementById('startingBanner').style.display = 'block';
-                window.TG?.haptic('heavy');
-            }, 500);
-        }
-    }, 2000);
 }
