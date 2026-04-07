@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#080808">
+    <title>Planet Poker — Лобби</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/lobby.css">
+</head>
+<body>
+    <div class="lobby-wrap">
+        <!-- HEADER -->
+        <header class="lobby-header">
+            <span class="lobby-logo">Planet Poker</span>
+            <div class="lobby-user">
+                <div class="avatar avatar-ring" id="userAvatar" style="width:32px;height:32px;font-size:14px;">?</div>
+                <span class="lobby-user-name" id="userName">Игрок</span>
+            </div>
+        </header>
+
+        <!-- HERO -->
+        <div class="lobby-hero anim-fade">
+            <h2 class="lobby-hero-title">Выбери стол</h2>
+            <p class="lobby-hero-sub">Sit &amp; Go · Texas Hold'em</p>
+        </div>
+
+        <!-- БЕСПЛАТНЫЕ СТОЛЫ -->
+        <p class="lobby-section-title">Бесплатные столы</p>
+        <div class="lobby-tables" id="freeTables">
+            <div class="table-card anim-fade" data-table="free-6" style="animation-delay:0.1s">
+                <div class="table-card-icon">♠</div>
+                <div class="table-card-info">
+                    <div class="table-card-name">Стол «Новичок»</div>
+                    <div class="table-card-meta">
+                        <span>6 игроков</span>
+                        <span>·</span>
+                        <span>1 000 фишек</span>
+                    </div>
+                    <div class="seats-bar" id="seats-free-6"></div>
+                </div>
+                <div class="table-card-right">
+                    <span class="badge badge-green">FREE</span>
+                    <span class="table-card-players" id="count-free-6">0/6</span>
+                </div>
+            </div>
+
+            <div class="table-card anim-fade" data-table="free-9" style="animation-delay:0.2s">
+                <div class="table-card-icon">♦</div>
+                <div class="table-card-info">
+                    <div class="table-card-name">Стол «Профи»</div>
+                    <div class="table-card-meta">
+                        <span>9 игроков</span>
+                        <span>·</span>
+                        <span>5 000 фишек</span>
+                    </div>
+                    <div class="seats-bar" id="seats-free-9"></div>
+                </div>
+                <div class="table-card-right">
+                    <span class="badge badge-green">FREE</span>
+                    <span class="table-card-players" id="count-free-9">0/9</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ТУРНИРЫ ЗА STARS -->
+        <p class="lobby-section-title">Турниры за Stars ⭐</p>
+        <div class="lobby-tables" id="starsTables">
+            <div class="table-card anim-fade" data-table="stars-50" style="animation-delay:0.3s">
+                <div class="table-card-icon">🏆</div>
+                <div class="table-card-info">
+                    <div class="table-card-name">Sit &amp; Go · Mini</div>
+                    <div class="table-card-meta">
+                        <span>6 игроков</span>
+                        <span>·</span>
+                        <span>Взнос: 50 ⭐</span>
+                    </div>
+                    <div class="seats-bar" id="seats-stars-50"></div>
+                </div>
+                <div class="table-card-right">
+                    <span class="table-card-prize">300 ⭐</span>
+                    <span class="table-card-players" id="count-stars-50">0/6</span>
+                </div>
+            </div>
+
+            <div class="table-card anim-fade" data-table="stars-100" style="animation-delay:0.4s">
+                <div class="table-card-icon">💎</div>
+                <div class="table-card-info">
+                    <div class="table-card-name">Sit &amp; Go · Classic</div>
+                    <div class="table-card-meta">
+                        <span>9 игроков</span>
+                        <span>·</span>
+                        <span>Взнос: 100 ⭐</span>
+                    </div>
+                    <div class="seats-bar" id="seats-stars-100"></div>
+                </div>
+                <div class="table-card-right">
+                    <span class="table-card-prize">900 ⭐</span>
+                    <span class="table-card-players" id="count-stars-100">0/9</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ОЖИДАНИЕ (скрыто по умолчанию) -->
+        <div class="waiting-card card-surface-glow anim-fade" id="waitingBlock" style="display:none">
+            <div class="waiting-title" id="waitingTitle">Ожидание игроков</div>
+            <p class="waiting-sub" id="waitingTableName">Стол «Новичок»</p>
+            <div class="waiting-seats" id="waitingSeats"></div>
+            <div class="lobby-status-text">
+                Игроков: <span id="waitingCount">1</span> / <span id="waitingMax">6</span>
+            </div>
+            <div class="prize-row" id="prizeRow" style="display:none">
+                <div class="prize-pill prize-1">
+                    <span class="prize-pill-place">🥇</span>
+                    <span class="prize-pill-amount" id="prize1">—</span>
+                </div>
+                <div class="prize-pill prize-2">
+                    <span class="prize-pill-place">🥈</span>
+                    <span class="prize-pill-amount" id="prize2">—</span>
+                </div>
+                <div class="prize-pill prize-3">
+                    <span class="prize-pill-place">🥉</span>
+                    <span class="prize-pill-amount" id="prize3">—</span>
+                </div>
+            </div>
+            <div class="starting-banner" id="startingBanner" style="display:none">
+                Игра начинается...
+            </div>
+            <button class="btn btn-ghost" id="btnLeave">Покинуть стол</button>
+        </div>
+
+        <div class="lobby-bottom-pad"></div>
+    </div>
+
+    <script src="js/tg.js"></script>
+    <script src="js/lobby.js"></script>
+</body>
+</html>
