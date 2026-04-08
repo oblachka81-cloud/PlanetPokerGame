@@ -11,16 +11,13 @@ let actionTimer = null;
 let raiseConfirmPending = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    myUserId = window.TG?.getId();
+    myUserId = window.TG?.getId() || params.get('userId');
     if (!TABLE_ID || !TOKEN) {
         showError('Неверная ссылка на игру');
         return;
     }
     initRaiseSlider();
     connectSocket();
-    if (!WAITING) {
-        // waitingOverlay уже виден по умолчанию — ждём game:round
-    }
     window.TG?.showBack(() => {
         if (confirm('Покинуть стол?')) leaveTable();
     });
@@ -35,11 +32,11 @@ function initRaiseSlider() {
     const amount = document.getElementById('raiseAmount');
     const raiseWrap = document.getElementById('raiseWrap');
     raiseWrap.style.display = 'none';
-    
+
     slider.addEventListener('input', () => {
         amount.textContent = slider.value;
     });
-    
+
     document.getElementById('btnRaise').addEventListener('click', () => {
         if (raiseWrap.style.display === 'none') {
             raiseWrap.style.display = 'flex';
@@ -68,8 +65,11 @@ function connectSocket() {
     });
 
     socket.on('connect', () => {
-        console.log('Подключён:', socket.id);
-        socket.emit('table:ready', { tableId: TABLE_ID, userId: myUserId });
+        // Берём userId повторно — на случай если TG не успел инициализироваться
+        const uid = myUserId || window.TG?.getId() || params.get('userId');
+        myUserId = uid;
+        console.log('Подключён:', socket.id, '| userId:', uid);
+        socket.emit('table:ready', { tableId: TABLE_ID, userId: uid });
     });
 
     socket.on('disconnect', () => {
@@ -124,7 +124,7 @@ function handleRound(data) {
     updateStatus(data.stage || 'Preflop');
     clearLog();
     logAction(`Раунд начался · ${data.stage || 'Preflop'}`);
-    
+
     const me = data.players?.find(p => String(p.userId) === String(myUserId));
     if (me?.cards) renderMyCards(me.cards);
 }
@@ -170,15 +170,17 @@ function handleShowdown(data) {
 function updateSeats(players) {
     const container = document.getElementById('seats');
     if (!container || !players) return;
-    
+
     container.innerHTML = '';
     players.forEach((p, i) => {
         const isMe = String(p.userId) === String(myUserId);
         const dealer = gameState?.dealerIndex === i;
         const active = gameState?.activeIndex === i;
-        const photo = p.photo ? `<img src="${p.photo}" alt="${p.name}">` : `<span class="seat-initials">${getInitials(p.name)}</span>`;
+        const photo = p.photo && p.photo.startsWith('http')
+            ? `<img src="${p.photo}" alt="${p.name}">`
+            : `<span class="seat-initials">${getInitials(p.name)}</span>`;
         const cards = isMe && gameState?.myCards ? renderCards(gameState.myCards) : (p.cards ? renderCards(p.cards) : renderCardBacks(2));
-        
+
         container.innerHTML += `
             <div class="seat ${isMe ? 'seat-me' : ''} ${active ? 'seat-active' : ''} ${p.folded ? 'seat-folded' : ''}" data-userid="${p.userId}">
                 <div class="seat-avatar">${photo}</div>
@@ -269,20 +271,20 @@ function clearLog() {
 function showActionButtons(data) {
     const btns = document.getElementById('actionButtons');
     if (!btns) return;
-    
+
     const callAmount = data.callAmount || 0;
     const minRaise = data.minRaise || Math.max(callAmount * 2, 20);
     const myChips = data.myChips || 0;
-    
+
     document.getElementById('btnFold').disabled = false;
     document.getElementById('btnFold').onclick = () => {
         sendAction('fold');
         hideActionButtons();
     };
-    
+
     const btnCheck = document.getElementById('btnCheck');
     const btnCall = document.getElementById('btnCall');
-    
+
     if (callAmount === 0) {
         btnCheck.disabled = false;
         btnCheck.style.display = '';
@@ -301,10 +303,10 @@ function showActionButtons(data) {
             hideActionButtons();
         };
     }
-    
+
     const btnRaise = document.getElementById('btnRaise');
     btnRaise.disabled = false;
-    
+
     const slider = document.getElementById('raiseSlider');
     const raiseAmount = document.getElementById('raiseAmount');
     if (slider) {
@@ -313,7 +315,7 @@ function showActionButtons(data) {
         slider.value = minRaise;
         if (raiseAmount) raiseAmount.textContent = minRaise;
     }
-    
+
     const btnAllIn = document.getElementById('btnAllIn');
     btnAllIn.disabled = false;
     btnAllIn.onclick = () => {
@@ -338,7 +340,7 @@ function startActionTimer(seconds, onTimeout) {
     let remaining = seconds;
     const el = document.getElementById('statusPlayers');
     if (el) el.textContent = `${remaining}с`;
-    
+
     const interval = setInterval(() => {
         remaining--;
         if (el) el.textContent = `${remaining}с`;
@@ -451,13 +453,13 @@ function getHandName(cards) {
 function startDemoMode() {
     updateStatus('Demo-режим');
     hideWaitingOverlay();
-    
+
     const demoPlayers = [
         { userId: myUserId || '1', name: 'Ты', chips: 1000 },
         { userId: '2', name: 'Игрок 2', chips: 950 },
         { userId: '3', name: 'Игрок 3', chips: 1050 },
     ];
-    
+
     gameState = {
         players: demoPlayers,
         pot: 30,
@@ -467,7 +469,7 @@ function startDemoMode() {
         dealerIndex: 0,
         activeIndex: 0,
     };
-    
+
     updateSeats(demoPlayers);
     updatePot(30);
     updateBoard(['7h', 'Qd', '2c']);
