@@ -1,38 +1,12 @@
-/* ============================================
-   PLANET POKER — LOBBY.JS
-   Логика лобби: столы, ожидание, Socket.io
-============================================ */
-
-// ---- ПЕРЕМЕННЫЕ ----
 let socket = null;
 let currentTable = null;
 
 // ---- КОНФИГ СТОЛОВ ----
 const TABLES = {
-    'free-6': {
-        name: 'Стол «Новичок»',
-        max: 6,
-        type: 'free',
-        prizes: null
-    },
-    'free-9': {
-        name: 'Стол «Профи»',
-        max: 9,
-        type: 'free',
-        prizes: null
-    },
-    'stars-50': {
-        name: 'Sit & Go · Mini',
-        max: 6,
-        type: 'stars',
-        prizes: ['180⭐', '90⭐', '30⭐']
-    },
-    'stars-100': {
-        name: 'Sit & Go · Classic',
-        max: 9,
-        type: 'stars',
-        prizes: ['540⭐', '270⭐', '90⭐']
-    },
+    'free-6': { name: 'Стол «Новичок»', max: 6, type: 'free', prizes: null },
+    'free-9': { name: 'Стол «Профи»', max: 9, type: 'free', prizes: null },
+    'stars-50': { name: 'Sit & Go · Mini', max: 6, type: 'stars', prizes: ['180⭐', '90⭐', '30⭐'] },
+    'stars-100': { name: 'Sit & Go · Classic', max: 9, type: 'stars', prizes: ['540⭐', '270⭐', '90⭐'] },
 };
 
 // ---- ИНИЦИАЛИЗАЦИЯ ----
@@ -95,10 +69,11 @@ function connectSocket() {
     });
 
     socket.on('connect', () => {
-        console.log('Подключён к серверу');
+        console.log('Подключён к серверу, socketId:', socket.id);
     });
 
     socket.on('lobby:update', (data) => {
+        console.log('lobby:update получен:', JSON.stringify(data));
         updateTableUI(data.tableId, data.players);
     });
 
@@ -130,12 +105,14 @@ function joinTable(tableId) {
     showWaiting(tableId, cfg);
 
     if (socket?.connected) {
-        socket.emit('lobby:join', {
+        const payload = {
             tableId: tableId,
             userId: window.TG?.getId(),
             name: window.TG?.getName() || 'Игрок',
             photo: window.TG?.getPhoto() || null,
-        });
+        };
+        console.log('lobby:join отправлен:', JSON.stringify(payload));
+        socket.emit('lobby:join', payload);
     } else {
         window.TG?.alert('Ошибка подключения к серверу. Попробуй позже.');
         leaveTable();
