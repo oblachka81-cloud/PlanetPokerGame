@@ -1,8 +1,3 @@
-/* ============================================
-   PLANET POKER — BOT.JS (объединённый)
-   Telegram бот + Express + Socket.io + PostgreSQL
-============================================ */
-
 const { Telegraf, Markup } = require('telegraf');
 const express = require('express');
 const http = require('http');
@@ -158,22 +153,41 @@ io.on('connection', (socket) => {
     });
 
     socket.on('lobby:join', async ({ tableId, userId, name, photo }) => {
+        console.log(`[lobby:join] tableId=${tableId} userId=${userId} name=${name} socketId=${socket.id}`);
+        
         const cfg = TABLES[tableId];
-        if (!cfg) return;
+        if (!cfg) {
+            console.log(`[lobby:join] ОШИБКА: стол ${tableId} не найден`);
+            return;
+        }
 
         const lobby = lobbies[tableId];
-        if (lobby.find(p => p.socketId === socket.id)) return;
+        if (lobby.find(p => p.socketId === socket.id)) {
+            console.log(`[lobby:join] socketId уже в лобби, игнорируем`);
+            return;
+        }
+
         leaveAllLobbies(socket.id);
 
         try {
             const dbUser = await getOrCreateUser(userId, name, photo);
             lobby.push({
-                socketId: socket.id, userId, dbUserId: dbUser.id,
-                telegramId: userId, name, photo, starsBalance: dbUser.stars_balance,
+                socketId: socket.id,
+                userId,
+                dbUserId: dbUser.id,
+                telegramId: userId,
+                name,
+                photo,
+                starsBalance: dbUser.stars_balance,
             });
             socket.join(tableId);
-            console.log(`[${tableId}] ${name} вступил (${lobby.length}/${cfg.max})`);
-            io.emit('lobby:update', { tableId, players: lobby.map(p => ({ name: p.name, photo: p.photo })) });
+            console.log(`[${tableId}] ${name} (userId=${userId}) вступил. Игроков в лобби: ${lobby.length}/${cfg.max}`);
+            console.log(`[${tableId}] Список игроков:`, lobby.map(p => `${p.name}(${p.userId})`).join(', '));
+
+            io.emit('lobby:update', {
+                tableId,
+                players: lobby.map(p => ({ name: p.name, photo: p.photo })),
+            });
 
             if (lobby.length >= cfg.max) {
                 await startGame(tableId);
@@ -184,8 +198,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('lobby:leave', ({ tableId }) => {
+        console.log(`[lobby:leave] tableId=${tableId} socketId=${socket.id}`);
         removeFromLobby(tableId, socket.id);
-        io.emit('lobby:update', { tableId, players: lobbies[tableId].map(p => ({ name: p.name, photo: p.photo })) });
+        io.emit('lobby:update', {
+            tableId,
+            players: lobbies[tableId].map(p => ({ name: p.name, photo: p.photo })),
+        });
     });
 
     socket.on('disconnect', () => {
@@ -203,15 +221,23 @@ async function startGame(tableId) {
 
     try {
         const game = await startTournament(tableId, players.map(p => ({
-            telegramId: p.telegramId, userId: p.dbUserId, name: p.name,
+            telegramId: p.telegramId,
+            userId: p.dbUserId,
+            name: p.name,
         })));
         console.log(`[${tableId}] Игра #${game.id} запускается!`);
+
         players.forEach(p => {
             io.to(p.socketId).emit('game:start', {
-                tableId, gameId: game.id, token,
+                tableId,
+                gameId: game.id,
+                token,
                 players: players.map(pl => ({
-                    userId: pl.telegramId, dbUserId: pl.dbUserId,
-                    name: pl.name, photo: pl.photo, chips: cfg.startChips,
+                    userId: pl.telegramId,
+                    dbUserId: pl.dbUserId,
+                    name: pl.name,
+                    photo: pl.photo,
+                    chips: cfg.startChips,
                 })),
             });
         });
@@ -231,7 +257,10 @@ function leaveAllLobbies(socketId) {
         const before = lobbies[tableId].length;
         lobbies[tableId] = lobbies[tableId].filter(p => p.socketId !== socketId);
         if (lobbies[tableId].length !== before) {
-            io.emit('lobby:update', { tableId, players: lobbies[tableId].map(p => ({ name: p.name, photo: p.photo })) });
+            io.emit('lobby:update', {
+                tableId,
+                players: lobbies[tableId].map(p => ({ name: p.name, photo: p.photo })),
+            });
         }
     });
 }
@@ -241,11 +270,9 @@ const PORT = process.env.PORT || 3000;
 
 initDB()
     .then(() => {
-        // Запускаем Express сервер
         httpServer.listen(PORT, () => {
             console.log(`🌐 Express + Socket.io сервер запущен на порту ${PORT}`);
         });
-        // Запускаем Telegram бота
         bot.launch();
         console.log('✅ Бот Planet Poker запущен');
     })
