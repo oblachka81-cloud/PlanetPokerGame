@@ -25,7 +25,7 @@ function initUser() {
     document.getElementById('userName').textContent = name;
 
     const avatar = document.getElementById('userAvatar');
-    if (photo) {
+    if (photo && photo.startsWith('http')) {
         avatar.innerHTML = `<img src="${photo}" alt="${name}">`;
     } else {
         avatar.textContent = initials;
@@ -81,17 +81,17 @@ function connectSocket() {
         const banner = document.getElementById('startingBanner');
         if (banner) banner.style.display = 'block';
         setTimeout(() => {
-            window.location.href = `game.html?table=${data.tableId}&token=${data.token}`;
+            const userId = window.TG?.getId() || '';
+            window.location.href = `game.html?table=${data.tableId}&token=${data.token}&userId=${userId}`;
         }, 1500);
     });
 
-    // Новый игрок подключился к активной игре — переходим сразу
     socket.on('game:join', (data) => {
         window.TG?.haptic('heavy');
-        window.location.href = `game.html?table=${data.tableId}&token=${data.token}&waiting=1`;
+        const userId = window.TG?.getId() || '';
+        window.location.href = `game.html?table=${data.tableId}&token=${data.token}&userId=${userId}&waiting=1`;
     });
 
-    // Стол полный
     socket.on('lobby:full', ({ tableId }) => {
         const cfg = TABLES[tableId];
         window.TG?.alert(`Стол «${cfg?.name || tableId}» заполнен. Попробуй другой.`);
@@ -139,7 +139,6 @@ function showWaiting(tableId, cfg) {
     document.getElementById('waitingMax').textContent = cfg.max;
     document.getElementById('waitingCount').textContent = '1';
 
-    // Показываем подсказку про минимум
     const hint = document.getElementById('waitingHint');
     if (hint) {
         hint.textContent = `Игра стартует при ${cfg.minPlayers} игроках, остальные могут подсесть`;
@@ -175,7 +174,9 @@ function renderWaitingSeats(players, max) {
     for (let i = 0; i < max; i++) {
         const p = players[i];
         if (p) {
-            const img = p.photo ? `<img src="${p.photo}" alt="${p.name}">` : `<span>${p.initials}</span>`;
+            const img = p.photo && p.photo.startsWith('http')
+                ? `<img src="${p.photo}" alt="${p.name}">`
+                : `<span>${p.initials}</span>`;
             html += `
                 <div class="waiting-seat">
                     <div class="waiting-seat-avatar filled">${img}</div>
@@ -198,7 +199,6 @@ function updateTableUI(tableId, players, tableActive, tablePlayers) {
     const cfg = TABLES[tableId];
     if (!cfg) return;
 
-    // Все игроки за столом (лобби + активные)
     const allPlayers = tableActive ? tablePlayers : players;
     const totalCount = allPlayers.length;
 
@@ -212,7 +212,6 @@ function updateTableUI(tableId, players, tableActive, tablePlayers) {
     const counter = document.getElementById(`count-${tableId}`);
     if (counter) counter.textContent = `${totalCount}/${cfg.max}`;
 
-    // Показываем статус стола на карточке
     const card = document.querySelector(`[data-table="${tableId}"]`);
     if (card) {
         let statusEl = card.querySelector('.table-status');
@@ -233,7 +232,6 @@ function updateTableUI(tableId, players, tableActive, tablePlayers) {
         }
     }
 
-    // Обновляем блок ожидания если это наш стол
     if (tableId === currentTable) {
         document.getElementById('waitingCount').textContent = totalCount;
         renderWaitingSeats(allPlayers.map(p => ({
