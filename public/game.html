@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Planet Poker — Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+    <div class="game-wrap">
+        <!-- Статус бар -->
+        <div class="game-topbar">
+            <div class="topbar-left">
+                <button class="topbar-btn" id="btnBackLobby">&#8592;</button>
+            </div>
+            <div class="topbar-center">
+                <span class="topbar-round" id="statusRound">Preflop</span>
+            </div>
+            <div class="topbar-right">
+                <span class="topbar-timer" id="statusPlayers"></span>
+            </div>
+        </div>
+
+        <!-- Стол -->
+        <div class="table-area">
+            <div class="poker-table">
+                <!-- Места игроков -->
+                <div id="seats"></div>
+
+                <!-- Банк -->
+                <div class="pot-wrap">
+                    <div class="pot-chip">
+                        <span class="pot-label">POT</span>
+                        <span class="pot-amount" id="potAmount">0</span>
+                    </div>
+                </div>
+
+                <!-- Борд (5 карт) -->
+                <div class="board-wrap">
+                    <div class="community-cards" id="communityCards">
+                        <div class="card community empty"></div>
+                        <div class="card community empty"></div>
+                        <div class="card community empty"></div>
+                        <div class="card community empty"></div>
+                        <div class="card community empty"></div>
+                    </div>
+                </div>
+
+                <!-- Карты игрока (на столе, внизу) -->
+                <div class="my-cards-wrap">
+                    <div class="my-cards" id="handCards"></div>
+                    <div class="hand-strength" id="handStrength"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайдер рейза -->
+        <div class="raise-wrap" id="raiseWrap">
+            <span class="raise-amount" id="raiseAmount">0</span>
+            <input type="range" class="raise-slider" id="raiseSlider" min="20" max="1000" value="20">
+            <span class="raise-max">MAX</span>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="action-bar">
+            <button class="action-btn btn-fold" id="btnFold" disabled>Fold</button>
+            <button class="action-btn btn-check" id="btnCheck" disabled>Check</button>
+            <button class="action-btn btn-call" id="btnCall" disabled style="display:none">Call</button>
+            <button class="action-btn btn-raise" id="btnRaise" disabled>Raise</button>
+            <button class="action-btn btn-allin" id="btnAllIn" disabled>All In</button>
+        </div>
+
+        <!-- Лог -->
+        <div class="action-log" id="actionLog"></div>
+
+        <!-- Overlay: ожидание -->
+        <div class="overlay waiting-overlay" id="waitingOverlay">
+            <div class="loader"></div>
+            <div class="overlay-text">Ожидание игроков...</div>
+        </div>
+
+        <!-- Overlay: результат раунда -->
+        <div class="overlay round-result" id="roundResult" style="display:none">
+            <div class="result-card">
+                <div class="result-title" id="roundResultTitle">Победа!</div>
+                <div class="result-hand" id="roundResultHand"></div>
+                <div class="result-amount" id="roundResultAmount"></div>
+            </div>
+        </div>
+
+        <!-- Overlay: конец игры -->
+        <div class="overlay tournament-end" id="tournamentEnd" style="display:none">
+            <div class="result-card">
+                <div class="result-title" id="tournamentTitle">Игра завершена</div>
+                <div class="result-place" id="tournamentPlace"></div>
+                <div class="result-amount" id="tournamentPrize"></div>
+                <button class="action-btn btn-call" style="margin-top:16px;width:100%" onclick="window.location.href='lobby.html'">В лобби</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/tg.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
