@@ -9,20 +9,6 @@
     }
     
     const tgUser = tg?.initDataUnsafe?.user || null;
-
-    // ВРЕМЕННАЯ ДИАГНОСТИКА
-    setTimeout(() => {
-        const info = JSON.stringify({
-            hasTg: !!tg,
-            hasUser: !!tgUser,
-            name: tgUser?.first_name || 'нет',
-            id: tgUser?.id || 'нет',
-            initData: tg?.initData ? tg.initData.slice(0, 50) : 'пусто',
-        }, null, 2);
-        document.body.insertAdjacentHTML('afterbegin',
-            `<pre style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#000;color:#0f0;font-size:11px;padding:8px;word-break:break-all">${info}</pre>`
-        );
-    }, 1000);
     
     window.TG = {
         app: tg,
